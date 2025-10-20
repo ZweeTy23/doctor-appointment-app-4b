@@ -17,7 +17,7 @@ $links = [
         'active' => false,
         'submenu' => [
             [
-                'name' => 'Ian master',
+                'name' => 'Karlos con K',
                 'href'=> '#',
                 'active' => false,
             ],
