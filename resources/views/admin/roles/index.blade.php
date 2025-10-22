@@ -1,6 +1,6 @@
 <x-admin-layout
-    title="Roles |"
-    :breadcrumb="[
+    title="Roles | Barkomedic"
+    :breadcrumbs="[
     [
     'name'=>'Dashboard',
     'route'=> route('admin.dashboard'),
@@ -10,5 +10,6 @@
 
 
 ]">
+@livewire('admin.data-tables.role-table')
 
 </x-admin-layout>
