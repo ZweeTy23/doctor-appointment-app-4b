@@ -1,7 +1,7 @@
 @props([
     'title'=>config('app.name', 'Laravel') ,
     'breadcrumbs'=>[]])
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
@@ -17,30 +17,40 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://kit.fontawesome.com/0d20d99f15.js" crossOrigin="anonymous"></script>
-{{--wireUi--}}
+    {{--wireUi--}}
     <wireui:scripts />
     <!-- Styles -->
     @livewireStyles
 </head>
 <body class="font-sans antialiased bg-gray-50">
 
-    @include('layouts.includes.admin.navigation')
+@include('layouts.includes.admin.navigation')
 
-    @include('layouts.includes.admin.sidebar')
+@include('layouts.includes.admin.sidebar')
 
-    <div class="p-4 sm:ml-64">
-        <!--margin top -->
-        <div class="mt-14 flex items-center justify-between w-full">
-           @include('layouts.includes.admin.breadcrumb')
+<div class="p-4 sm:ml-64">
+    <div class="mt-14 flex items-center justify-between w-full">
+
+        {{-- Esto muestra las migas de pan a la izquierda --}}
+        @include('layouts.includes.admin.breadcrumb')
+
+        {{-- ESTA ES LA LÍNEA QUE FALTABA --}}
+        {{-- Esto imprimirá tu botón a la derecha --}}
+        <div>
+            {{ $action ?? '' }}
         </div>
-        {{$slot}}
+
     </div>
 
-    @stack('modals')
+    {{-- El slot principal (la tabla) se imprime debajo --}}
+    {{$slot}}
+</div>
 
-    @livewireScripts
+@stack('modals')
 
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+@livewireScripts
+
+<script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 
 
 
