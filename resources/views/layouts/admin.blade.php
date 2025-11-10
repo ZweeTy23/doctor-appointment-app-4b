@@ -10,6 +10,16 @@
 
     <title>{{$title }}</title>
 
+
+
+    @if (session('swal'))
+        <script>
+            Swal.fire(@json(session('swal')));
+        </script>
+    @endif
+
+
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -52,9 +62,40 @@
 
 <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@if(session('swal'))
+    <script>
+        Swal.fire(@json(session('swal')));
+    </script>
+@endif
 
 
+<script>
+    //buscar todos los elementos e una clase especifica
+    const forms = document.querySelectorAll('.delete-form');
 
+    forms.forEach(form => {
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡No podrás revertir esto!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, ¡eliminar!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // The second Swal is not necessary as the page will reload.
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
 </body>
 
 

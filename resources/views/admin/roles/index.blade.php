@@ -1,5 +1,5 @@
 <x-admin-layout
-    title="Roles | MediCitas"
+    title="Roles | simify"
     :breadcrumbs="[
         [
             'name' => 'Dashboard',

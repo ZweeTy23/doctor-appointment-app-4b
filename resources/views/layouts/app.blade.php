@@ -6,7 +6,16 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
-
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        @if (session('swal'))
+            <script>
+                Swal.fire({
+                    icon: '{{ session('swal.icon') }}',
+                    title: '{{ session('swal.title') }}',
+                    text: '{{ session('swal.text') }}',
+                })
+            </script>
+        @endif
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
@@ -20,7 +21,7 @@ class RoleController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.roles.create') ; //
     }
 
     /**
@@ -28,38 +29,101 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate(['name'=> 'required|unique:roles,name']);
+
+        $role = Role::create($request->all());
+
+        session()->flash('swal', [
+            'icon' => 'success',
+            'title' => '¡Hecho!',
+            'text' => 'Rol creado satisfactoriamente.'
+        ]);
+
+        return redirect()->route('admin.roles.index');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Role $role)
     {
-        //
+        return view('admin.roles.show', compact('role'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Role $role)
     {
-        return view('admin.roles.edit');
+
+        if($role->id <=4){
+            session()->flash('swal', [
+                'icon' => 'error',
+                'title' => '¡Error!',
+                'text' => 'No se puede editar un rol por defecto.'
+            ]);
+
+            return redirect()->route('admin.roles.index');
+        }
+        return view('admin.roles.edit', compact('role'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Role $role)
     {
-        //
+        $request->validate([
+            'name'=> 'required|unique:roles,name,' . $role->id
+        ]);
+
+        if($role->name===$request->name){
+            session()->flash('swal', [
+                'icon' => 'info',
+                'title' => 'Sin cambios',
+                'text' => 'No se detectaron cambios'
+            ]);
+            return redirect()->route('admin.roles.edit',$role);
+        };
+
+        $role->update($request->all());
+
+        session()->flash('swal', [
+            'icon' => 'success',
+            'title' => '¡Hecho!',
+            'text' => 'Rol actualizado satisfactoriamente.'
+        ]);
+
+        return redirect()->route('admin.roles.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Role $role)
     {
-        //
+//Primeros 4 roles fijos
+        if($role->id <=4){
+            session()->flash('swal', [
+                'icon' => 'error',
+                'title' => '¡Error!',
+                'text' => 'No se puede eliminar un rol por defecto.'
+            ]);
+
+            return redirect()->route('admin.roles.index');
+        }
+
+
+
+        //Borrar
+        $role->delete();
+
+        session()->flash('swal', [
+            'icon' => 'success',
+            'title' => '¡Hecho!',
+            'text' => 'Rol eliminado satisfactoriamente.'
+        ]);
+
+        return redirect()->route('admin.roles.index');
     }
 }
