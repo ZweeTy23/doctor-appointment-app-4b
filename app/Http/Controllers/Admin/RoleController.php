@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
@@ -20,7 +21,7 @@ class RoleController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.roles.create');
     }
 
     /**
@@ -28,7 +29,21 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name',
+        ]);
+
+        Role::create([
+            'name' => $request->name,
+            'guard_name' => 'web',
+        ]);
+
+        return redirect()->route('admin.roles.index')
+            ->with('notification', [
+                'title' => '¡Éxito!',
+                'description' => 'Rol creado correctamente',
+                'icon' => 'success',
+            ]);
     }
 
     /**
@@ -44,7 +59,9 @@ class RoleController extends Controller
      */
     public function edit(string $id)
     {
-        return view('admin.roles.edit');
+        $role = Role::findOrFail($id);
+
+        return view('admin.roles.edit', compact('role'));
     }
 
     /**
@@ -52,7 +69,22 @@ class RoleController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $role = Role::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name,'.$id,
+        ]);
+
+        $role->update([
+            'name' => $request->name,
+        ]);
+
+        return redirect()->route('admin.roles.index')
+            ->with('notification', [
+                'title' => '¡Éxito!',
+                'description' => 'Rol actualizado correctamente',
+                'icon' => 'success',
+            ]);
     }
 
     /**
@@ -60,6 +92,14 @@ class RoleController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $role = Role::findOrFail($id);
+        $role->delete();
+
+        return redirect()->route('admin.roles.index')
+            ->with('notification', [
+                'title' => '¡Éxito!',
+                'description' => 'Rol eliminado correctamente',
+                'icon' => 'success',
+            ]);
     }
 }
