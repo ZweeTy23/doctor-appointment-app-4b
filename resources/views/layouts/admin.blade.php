@@ -23,6 +23,7 @@
     @livewireStyles
 </head>
 <body class="font-sans antialiased bg-gray-50">
+<x-notifications />
 
 @include('layouts.includes.admin.navigation')
 
@@ -52,8 +53,18 @@
 
 <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 
-
-
+@if(session('notification'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const notification = @json(session('notification'));
+        window.$wireui.notify({
+            title: notification.title,
+            description: notification.description,
+            icon: notification.icon
+        });
+    });
+</script>
+@endif
 
 </body>
 
