@@ -2,12 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', 'admin');
+// File: routes/web.php
+use App\Http\Controllers\Admin\DashboardController;
 
-//
-//Route::get('/', function () {
-//    return view('welcome');
-//});
+Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // ... otras rutas admin (roles, users, etc.)
+});
 
 Route::middleware([
     'auth:sanctum',

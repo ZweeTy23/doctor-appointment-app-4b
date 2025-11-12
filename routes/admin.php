@@ -1,10 +1,18 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\UserController; // 👈 importa UserController también
 
-Route::get('/', function () {
-   return view('admin.dashboard');
+// /admin/dashboard -> admin.dashboard
+Route::get('/dashboard', function () {
+    // usa la vista que tengas; si no existe admin/dashboard.blade.php,
+    // cambia a view('dashboard')
+    return view('dashboard');
 })->name('dashboard');
 
-//Gestion de ROles
-Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class);
+// /admin/roles -> admin.roles.*
+Route::resource('roles', RoleController::class)->names('roles');
+
+// /admin/users -> admin.users.*
+Route::resource('users', UserController::class)->names('users');
