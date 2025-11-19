@@ -20,6 +20,9 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 });
+
+require __DIR__ . '/admin.php';
+
 Route::prefix('admin')->name('admin.')->middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),

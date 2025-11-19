@@ -20,5 +20,5 @@
 
     {{-- ¡HEMOS ELIMINADO LA LÍNEA @livewire DE AQUÍ! --}}
     {{-- Ahora la página cargará sin errores y mostrará el fondo vacío. --}}
-
+@livewire('admin.datatables.user-table')
 </x-admin-layout>
