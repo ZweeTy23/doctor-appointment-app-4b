@@ -63,7 +63,7 @@ class UserController extends Controller
                 'text'  => 'El usuario ha sido creado y el rol asignado exitosamente',
             ]);
     }
-
+#comentario para que pueda hacer commit
     public function show(User $user)
     {
         return view('admin.users.show', compact('user'));
@@ -118,6 +118,17 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // PROTECCIÓN: No permitir que el usuario se elimine a sí mismo
+        if ($user->id === auth()->id()) {
+            return redirect()
+                ->route('admin.users.index')
+                ->with('swal', [
+                    'icon'  => 'error',
+                    'title' => 'Acción no permitida',
+                    'text'  => 'No puedes eliminar tu propia cuenta de administrador.',
+                ]);
+        }
+
         $user->delete();
 
         return redirect()
@@ -125,7 +136,7 @@ class UserController extends Controller
             ->with('swal', [
                 'icon'  => 'success',
                 'title' => 'Usuario eliminado',
-                'text'  => 'El usuario ha sido eliminado correctamente.',
+                'text'  => 'El usuario ha sido movido a la papelera (Soft Delete).',
             ]);
     }
 }
