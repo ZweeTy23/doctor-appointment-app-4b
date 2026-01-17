@@ -1,3 +1,4 @@
+@php use function Livewire\store; @endphp
 <!-- resources/views/admin/roles/create.blade.php -->
 <x-admin-layout
     title="Roles | MediCitas"
@@ -15,6 +16,9 @@
         ]
     ]"
 >
+
+
+
     <x-wire-card>
         <form action="{{ route('admin.roles.store') }}" method="POST">
             @csrf
