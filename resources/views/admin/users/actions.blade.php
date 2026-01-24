@@ -11,4 +11,3 @@
         </x-wire-button>
     </form>
 </div>
-`

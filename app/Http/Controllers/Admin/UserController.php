@@ -120,15 +120,21 @@ class UserController extends Controller
     {
         // PROTECCIÓN: No permitir que el usuario se elimine a sí mismo
         if ($user->id === auth()->id()) {
+            // OPCIÓN PARA EL TEST: Si quieres que el test pase con assertStatus(403)
+            abort(403, 'No puedes eliminar tu propia cuenta.');
+
+            /* // Si prefieres redireccionar, el test debe esperar assertStatus(302)
             return redirect()
-                ->route('admin.users.index')
+                ->route('admin.users.index') // <--- ELIMINADO EL ";" DE AQUÍ
                 ->with('swal', [
                     'icon'  => 'error',
                     'title' => 'Acción no permitida',
                     'text'  => 'No puedes eliminar tu propia cuenta de administrador.',
                 ]);
+            */
         }
 
+        $user->roles()->detach();
         $user->delete();
 
         return redirect()
@@ -138,5 +144,4 @@ class UserController extends Controller
                 'title' => 'Usuario eliminado',
                 'text'  => 'El usuario ha sido movido a la papelera (Soft Delete).',
             ]);
-    }
-}
+    }}
