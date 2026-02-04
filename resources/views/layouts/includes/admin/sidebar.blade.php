@@ -21,6 +21,12 @@
             'href' => route('admin.users.index'),
             'active' => request()->routeIs('admin.users.*'),
         ],
+        [
+            'name' => 'Pacientes',
+            'icon' => 'fa-solid fa-hospital-user',
+            'href' => route('admin.patients.index'),
+            'active' => request()->routeIs('admin.patients.*'),
+        ],
 
 
 

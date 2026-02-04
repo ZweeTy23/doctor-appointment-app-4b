@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Patient;
+use App\Models\BloodType;
+use Illuminate\Http\Request;
+
+class PatientController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        return view('admin.patients.index');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Patient $patient)
+    {
+        $patient->load(['user', 'bloodType']);
+        return view('admin.patients.show', compact('patient'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Patient $patient)
+    {
+        $bloodTypes = BloodType::all();
+        $patient->load(['user', 'bloodType']);
+
+        return view('admin.patients.edit', compact('patient', 'bloodTypes'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Patient $patient)
+    {
+        $request->validate([
+            'blood_type_id' => 'nullable|exists:blood_types,id',
+            'allergies' => 'nullable|string|max:1000',
+            'chronic_diseases' => 'nullable|string|max:1000',
+            'surgery_history' => 'nullable|string|max:1000',
+            'observations' => 'nullable|string|max:1000',
+            'emergency_contact_name' => 'nullable|string|max:255',
+            'emergency_contact_phone' => 'nullable|string|max:20',
+            'emergency_relationship' => 'nullable|string|max:100',
+        ]);
+
+        $patient->update($request->except('user_id'));
+
+        return redirect()
+            ->route('admin.patients.index')
+            ->with('swal', [
+                'icon' => 'success',
+                'title' => 'Expediente actualizado',
+                'text' => 'El expediente médico ha sido actualizado exitosamente.',
+            ]);
+    }
+}

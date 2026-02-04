@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Spatie\Permission\Models\Role; // <--- IMPORTANTE: Importar el modelo Role
+use App\Models\Patient;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -51,9 +52,16 @@ class UserController extends Controller
             'address'   => $request->address,
         ]);
 
-        // CORRECCIÓN 3: Asignar el rol usando Spatie
-        // No se guarda en la tabla 'users', sino en la tabla pivote de Spatie
+        // Asignar el rol usando Spatie
         $user->roles()->sync($request->role_id);
+
+        // Si el rol asignado es "Paciente", crear automáticamente el expediente
+        $role = Role::find($request->role_id);
+        if ($role && $role->name === 'Paciente') {
+            Patient::create([
+                'user_id' => $user->id,
+            ]);
+        }
 
         return redirect()
             ->route('admin.users.index')
@@ -104,8 +112,24 @@ class UserController extends Controller
 
         $user->update($data);
 
+        // Obtener el rol anterior y el nuevo
+        $oldRole = $user->roles->first();
+        $newRole = Role::find($request->role_id);
+
         // Actualizar el rol
         $user->roles()->sync($request->role_id);
+
+        // Si el nuevo rol es "Paciente" y no tiene expediente, crearlo
+        if ($newRole && $newRole->name === 'Paciente' && !$user->patient) {
+            Patient::create([
+                'user_id' => $user->id,
+            ]);
+        }
+
+        // Si el rol anterior era "Paciente" y el nuevo no lo es, eliminar el expediente
+        if ($oldRole && $oldRole->name === 'Paciente' && $newRole && $newRole->name !== 'Paciente') {
+            $user->patient?->delete();
+        }
 
         return redirect()
             ->route('admin.users.index')
