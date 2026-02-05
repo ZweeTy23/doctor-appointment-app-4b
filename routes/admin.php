@@ -5,17 +5,18 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PatientController;
 use Illuminate\Support\Facades\Route;
 
+// Dashboard admin
 Route::get('/', function (){
     return view('admin.dashboard');
 })->name('dashboard');
 
-//Gestion de roles
-Route::resource('roles', RoleController::class)->names('admin.roles');
+// Gestión de roles
+Route::resource('roles', RoleController::class)->names('roles');
 
-//Gestion de usuarios
-Route::resource('users', UserController::class)->names('admin.users');
+// Gestión de usuarios
+Route::resource('users', UserController::class)->names('users');
 
-//Gestion de pacientes (solo ver y editar, se crean desde usuarios)
+// Gestión de pacientes (solo ver y editar, se crean desde usuarios)
 Route::resource('patients', PatientController::class)
     ->only(['index', 'show', 'edit', 'update'])
-    ->names('admin.patients');
+    ->names('patients');
