@@ -281,5 +281,15 @@ return [
         'winner'                   => 'ganador',
         'work'                     => 'trabajo',
         'year'                     => 'año',
+
+        // Campos del módulo de pacientes
+        'blood_type_id'            => 'tipo de sangre',
+        'allergies'                => 'alergias conocidas',
+        'chronic_diseases'         => 'enfermedades crónicas',
+        'surgery_history'          => 'antecedentes quirúrgicos',
+        'observations'             => 'observaciones',
+        'emergency_contact_name'   => 'nombre de contacto de emergencia',
+        'emergency_contact_phone'  => 'teléfono de contacto de emergencia',
+        'emergency_relationship'   => 'parentesco',
     ],
 ];

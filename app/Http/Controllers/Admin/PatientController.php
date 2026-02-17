@@ -42,25 +42,32 @@ class PatientController extends Controller
      */
     public function update(Request $request, Patient $patient)
     {
-        $request->validate([
-            'blood_type_id' => 'nullable|exists:blood_types,id',
-            'allergies' => 'nullable|string|max:1000',
-            'chronic_diseases' => 'nullable|string|max:1000',
-            'surgery_history' => 'nullable|string|max:1000',
-            'observations' => 'nullable|string|max:1000',
-            'emergency_contact_name' => 'nullable|string|max:255',
-            'emergency_contact_phone' => 'nullable|string|max:20',
-            'emergency_relationship' => 'nullable|string|max:100',
+        // Sanitización del teléfono: eliminar paréntesis, guiones y espacios
+        if ($request->emergency_contact_phone) {
+            $request->merge([
+                'emergency_contact_phone' => preg_replace('/[^0-9]/', '', $request->emergency_contact_phone),
+            ]);
+        }
+
+        $data = $request->validate([
+            'blood_type_id'            => 'nullable|exists:blood_types,id',
+            'allergies'                => 'nullable|string|max:1000',
+            'chronic_diseases'         => 'nullable|string|max:1000',
+            'surgery_history'          => 'nullable|string|max:1000',
+            'observations'             => 'nullable|string|max:1000',
+            'emergency_contact_name'   => 'nullable|string|max:255',
+            'emergency_contact_phone'  => 'nullable|string|digits:10',
+            'emergency_relationship'   => 'nullable|string|max:50',
         ]);
 
-        $patient->update($request->except('user_id'));
+        $patient->update($data);
 
         return redirect()
-            ->route('admin.patients.index')
+            ->route('admin.patients.edit', $patient)
             ->with('swal', [
-                'icon' => 'success',
+                'icon'  => 'success',
                 'title' => 'Expediente actualizado',
-                'text' => 'El expediente médico ha sido actualizado exitosamente.',
+                'text'  => 'El expediente médico ha sido actualizado exitosamente.',
             ]);
     }
 }
