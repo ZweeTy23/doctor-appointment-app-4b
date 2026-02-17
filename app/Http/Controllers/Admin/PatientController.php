@@ -43,9 +43,9 @@ class PatientController extends Controller
     public function update(Request $request, Patient $patient)
     {
         // Sanitización del teléfono: eliminar paréntesis, guiones y espacios
-        if ($request->emergency_contact_phone) {
+        if ($request->filled('emergency_contact_phone')) {
             $request->merge([
-                'emergency_contact_phone' => preg_replace('/[^0-9]/', '', $request->emergency_contact_phone),
+                'emergency_contact_phone' => preg_replace('/[^0-9]/', '', $request->input('emergency_contact_phone')),
             ]);
         }
 
@@ -54,11 +54,31 @@ class PatientController extends Controller
             'allergies'                => 'nullable|string|max:1000',
             'chronic_diseases'         => 'nullable|string|max:1000',
             'surgery_history'          => 'nullable|string|max:1000',
+            'family_history'           => 'nullable|string|max:1000',
             'observations'             => 'nullable|string|max:1000',
             'emergency_contact_name'   => 'nullable|string|max:255',
             'emergency_contact_phone'  => 'nullable|string|digits:10',
             'emergency_relationship'   => 'nullable|string|max:50',
         ]);
+
+        // Detectar si hubo cambios reales comparando con los datos actuales
+        $hasChanges = false;
+        foreach ($data as $key => $value) {
+            if ($patient->{$key} != $value) {
+                $hasChanges = true;
+                break;
+            }
+        }
+
+        if (! $hasChanges) {
+            return redirect()
+                ->route('admin.patients.edit', $patient)
+                ->with('swal', [
+                    'icon'  => 'info',
+                    'title' => 'Sin cambios',
+                    'text'  => 'No se detectaron cambios en el expediente.',
+                ]);
+        }
 
         $patient->update($data);
 
