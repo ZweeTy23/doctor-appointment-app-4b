@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Patient;
+use App\Models\Doctor;
+use App\Models\Speciality;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -61,6 +63,19 @@ class UserController extends Controller
             Patient::create([
                 'user_id' => $user->id,
             ]);
+        }
+
+        // Si el rol asignado es "Doctor", crear automáticamente el perfil y redirigir al edit
+        if ($role && $role->name === 'Doctor') {
+            $doctor = Doctor::create(['user_id' => $user->id]);
+
+            return redirect()
+                ->route('admin.doctors.edit', $doctor)
+                ->with('swal', [
+                    'icon'  => 'info',
+                    'title' => 'Doctor creado',
+                    'text'  => 'Completa el perfil profesional del doctor.',
+                ]);
         }
 
         return redirect()
@@ -129,6 +144,24 @@ class UserController extends Controller
         // Si el rol anterior era "Paciente" y el nuevo no lo es, eliminar el expediente
         if ($oldRole && $oldRole->name === 'Paciente' && $newRole && $newRole->name !== 'Paciente') {
             $user->patient?->delete();
+        }
+
+        // Si el nuevo rol es "Doctor" y no tiene perfil, crearlo y redirigir al edit
+        if ($newRole && $newRole->name === 'Doctor' && !$user->doctor) {
+            $doctor = Doctor::create(['user_id' => $user->id]);
+
+            return redirect()
+                ->route('admin.doctors.edit', $doctor)
+                ->with('swal', [
+                    'icon'  => 'info',
+                    'title' => 'Doctor creado',
+                    'text'  => 'Completa el perfil profesional del doctor.',
+                ]);
+        }
+
+        // Si el rol anterior era "Doctor" y el nuevo no lo es, eliminar el perfil
+        if ($oldRole && $oldRole->name === 'Doctor' && $newRole && $newRole->name !== 'Doctor') {
+            $user->doctor?->delete();
         }
 
         return redirect()
