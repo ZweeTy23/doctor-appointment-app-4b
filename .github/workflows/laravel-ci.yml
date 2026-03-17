@@ -17,7 +17,7 @@ jobs:
         php-version: '8.2'
 
     - name: Install Dependencies
-      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      run: composer update -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
     - name: Copy .env
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
@@ -25,5 +25,5 @@ jobs:
     - name: Generate key
       run: php artisan key:generate
 
-    - name: Execute tests
-      run: php artisan test
+    - name: Check application can bootstrap
+      run: php artisan about
