@@ -3083,34 +3083,34 @@
         },
         {
             "name": "laravel-lang/routes",
-            "version": "1.10.1",
+            "version": "1.11.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Laravel-Lang/routes.git",
-                "reference": "b2352d04358823bdcffb02986463dea245fac781"
+                "reference": "29d7f83f2679f51187aa4e761d73bb4e0d133bf4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Laravel-Lang/routes/zipball/b2352d04358823bdcffb02986463dea245fac781",
-                "reference": "b2352d04358823bdcffb02986463dea245fac781",
+                "url": "https://api.github.com/repos/Laravel-Lang/routes/zipball/29d7f83f2679f51187aa4e761d73bb4e0d133bf4",
+                "reference": "29d7f83f2679f51187aa4e761d73bb4e0d133bf4",
                 "shasum": ""
             },
             "require": {
                 "codezero/browser-locale": "^3.4",
                 "dragon-code/support": "^6.13",
-                "illuminate/config": "^10.0 || ^11.0 || ^12.0",
-                "illuminate/http": "^10.0 || ^11.0 || ^12.0",
-                "illuminate/routing": "^10.0 || ^11.0 || ^12.0",
-                "illuminate/support": "^10.0 || ^11.0 || ^12.0",
+                "illuminate/config": "^10.0 || ^11.0 || ^12.0 || ^13.0",
+                "illuminate/http": "^10.0 || ^11.0 || ^12.0 || ^13.0",
+                "illuminate/routing": "^10.0 || ^11.0 || ^12.0 || ^13.0",
+                "illuminate/support": "^10.0 || ^11.0 || ^12.0 || ^13.0",
                 "laravel-lang/config": "^1.13",
                 "laravel-lang/locales": "^2.10",
                 "php": "^8.1"
             },
             "require-dev": {
-                "orchestra/testbench": "^8.23 || ^9.1 || ^10.0",
-                "pestphp/pest": "^2.34 || ^3.0",
-                "pestphp/pest-plugin-laravel": "^2.4 || ^3.0",
-                "symfony/var-dumper": "^6.0 || ^7.0"
+                "orchestra/testbench": "^8.23 || ^9.1 || ^10.0 || ^11.0",
+                "pestphp/pest": "^2.34 || ^3.0 || ^4.0",
+                "pestphp/pest-plugin-laravel": "^2.4 || ^3.0 || ^4.0",
+                "symfony/var-dumper": "^6.0 || ^7.0 || ^8.0"
             },
             "type": "library",
             "extra": {
@@ -3167,7 +3167,7 @@
                     "type": "yoomoney"
                 }
             ],
-            "time": "2026-01-14T13:37:36+00:00"
+            "time": "2026-03-17T23:06:16+00:00"
         },
         {
             "name": "laravel-lang/starter-kits",
