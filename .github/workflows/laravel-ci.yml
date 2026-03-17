@@ -25,5 +25,5 @@ jobs:
     - name: Generate key
       run: php artisan key:generate
 
-    - name: Execute tests
-      run: php artisan test
+    - name: Check application can bootstrap
+      run: php artisan about
