@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Services;
+
+use Twilio\Rest\Client;
+
+class WhatsAppService
+{
+    protected Client $twilio;
+    protected string $from;
+    protected string $to;
+
+    public function __construct()
+{
+    $this->twilio = new Client(
+        config('services.twilio.sid'),
+        config('services.twilio.token')
+    );
+    $this->twilio->setHttpClient(new \Twilio\Http\CurlClient([
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+    ]));
+    $this->from = 'whatsapp:' . config('services.twilio.from');
+    $this->to   = 'whatsapp:' . config('services.twilio.to');
+}
+    /**
+     * Envía un mensaje de WhatsApp.
+     */
+    public function send(string $message): void
+    {
+        $this->twilio->messages->create($this->to, [
+            'from' => $this->from,
+            'body' => $message,
+        ]);
+    }
+
+    /**
+     * Mensaje de confirmación al crear una cita.
+     */
+    public function sendAppointmentConfirmation(\App\Models\Appointment $appointment): void
+    {
+        $patient = $appointment->patient->user->name;
+        $doctor  = $appointment->doctor->user->name;
+        $date    = $appointment->date->format('d/m/Y');
+        $start   = date('H:i', strtotime($appointment->start_time));
+        $end     = date('H:i', strtotime($appointment->end_time));
+
+        $message = "✅ *Cita confirmada — MediMatch*\n\n"
+            . "👤 Paciente: {$patient}\n"
+            . "🩺 Doctor: Dr. {$doctor}\n"
+            . "📅 Fecha: {$date}\n"
+            . "⏰ Horario: {$start} – {$end}\n\n"
+            . "Por favor llegue 10 minutos antes. Para cancelar contacte a la clínica.";
+
+        $this->send($message);
+    }
+
+    /**
+     * Mensaje de recordatorio (un día antes de la cita).
+     */
+    public function sendAppointmentReminder(\App\Models\Appointment $appointment): void
+    {
+        $patient = $appointment->patient->user->name;
+        $doctor  = $appointment->doctor->user->name;
+        $date    = $appointment->date->format('d/m/Y');
+        $start   = date('H:i', strtotime($appointment->start_time));
+
+        $message = "🔔 *Recordatorio de cita — MediMatch*\n\n"
+            . "Hola {$patient}, te recordamos que mañana tienes una cita médica:\n\n"
+            . "🩺 Doctor: Dr. {$doctor}\n"
+            . "📅 Fecha: {$date}\n"
+            . "⏰ Hora: {$start}\n\n"
+            . "¡Te esperamos! Si necesitas cancelar, contáctanos con anticipación.";
+
+        $this->send($message);
+    }
+}

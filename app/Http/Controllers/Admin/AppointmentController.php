@@ -8,6 +8,7 @@ use App\Models\Availability;
 use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\Speciality;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
@@ -140,7 +141,7 @@ class AppointmentController extends Controller
         }
 
         // ─── Crear la cita ───
-        Appointment::create([
+        $appointment = Appointment::create([
             'patient_id' => $data['patient_id'],
             'doctor_id'  => $doctorId,
             'date'       => $date,
@@ -150,12 +151,21 @@ class AppointmentController extends Controller
             'reason'     => $data['reason'] ?? null,
         ]);
 
+        // ─── Enviar confirmación por WhatsApp ───
+        try {
+            $appointment->load(['patient.user', 'doctor.user']);
+            app(WhatsAppService::class)->sendAppointmentConfirmation($appointment);
+        } catch (\Exception $e) {
+            // Si falla el WhatsApp, la cita ya quedó guardada — no bloquear al usuario
+            \Log::error('WhatsApp confirmation failed: ' . $e->getMessage());
+        }
+
         return redirect()
             ->route('admin.appointments.index')
             ->with('swal', [
                 'icon'  => 'success',
                 'title' => 'Cita programada',
-                'text'  => 'La cita médica ha sido programada exitosamente.',
+                'text'  => 'La cita médica ha sido programada y se envió confirmación por WhatsApp.',
             ]);
     }
 
