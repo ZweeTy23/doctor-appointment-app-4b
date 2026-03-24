@@ -171,20 +171,12 @@ class AppointmentController extends Controller
                 ->orderBy('start_time')
                 ->get();
 
-            $testTo = config('mail.test_recipient');
-            if (is_string($testTo) && filter_var($testTo, FILTER_VALIDATE_EMAIL)) {
-                Mail::to($testTo)->send(new AppointmentReceiptMail($appointment, 'patient', $doctorDayAppointments));
-                Mail::to($testTo)->send(new AppointmentReceiptMail($appointment, 'doctor', $doctorDayAppointments));
+            $adminEmail = config('services.admin.email');
+            if (is_string($adminEmail) && filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
+                Mail::to($adminEmail)->send(new AppointmentReceiptMail($appointment, 'patient', $doctorDayAppointments));
+                Mail::to($adminEmail)->send(new AppointmentReceiptMail($appointment, 'doctor', $doctorDayAppointments));
             } else {
-                $patientEmail = $appointment->patient->user->email ?? null;
-                $doctorEmail = $appointment->doctor->user->email ?? null;
-
-                if (is_string($patientEmail) && filter_var($patientEmail, FILTER_VALIDATE_EMAIL)) {
-                    Mail::to($patientEmail)->send(new AppointmentReceiptMail($appointment, 'patient', $doctorDayAppointments));
-                }
-                if (is_string($doctorEmail) && filter_var($doctorEmail, FILTER_VALIDATE_EMAIL)) {
-                    Mail::to($doctorEmail)->send(new AppointmentReceiptMail($appointment, 'doctor', $doctorDayAppointments));
-                }
+                \Log::warning('Appointment receipt emails skipped: set ADMIN_EMAIL in .env to a valid address.');
             }
         } catch (\Throwable $e) {
             \Log::error('Appointment receipt email failed: '.$e->getMessage());
@@ -195,7 +187,7 @@ class AppointmentController extends Controller
             ->with('swal', [
                 'icon' => 'success',
                 'title' => 'Cita programada',
-                'text' => 'La cita se guardó. Se envió confirmación por WhatsApp (si aplica) y los correos de comprobante (paciente con PDF y doctor con agenda del día).',
+                'text' => 'La cita se guardó. Se envió confirmación por WhatsApp (si aplica) y los correos de comprobante al administrador (ADMIN_EMAIL).',
             ]);
     }
 

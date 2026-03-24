@@ -115,18 +115,4 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Test recipient (optional)
-    |--------------------------------------------------------------------------
-    |
-    | If set, both “new appointment” emails (patient + doctor versions) are sent
-    | to this address. The patient email includes the PDF; the doctor email lists
-    | the full day’s schedule for that doctor. Leave empty in production to use
-    | each user’s real email.
-    |
-    */
-
-    'test_recipient' => env('MAIL_TEST_RECIPIENT'),
-
 ];
