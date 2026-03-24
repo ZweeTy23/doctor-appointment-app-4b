@@ -163,14 +163,28 @@ class AppointmentController extends Controller
         }
 
         try {
-            $patientEmail = $appointment->patient->user->email ?? null;
-            $doctorEmail = $appointment->doctor->user->email ?? null;
+            $doctorDayAppointments = Appointment::query()
+                ->with(['patient.user'])
+                ->where('doctor_id', $appointment->doctor_id)
+                ->whereDate('date', $appointment->date)
+                ->where('status', 'programado')
+                ->orderBy('start_time')
+                ->get();
 
-            if (is_string($patientEmail) && filter_var($patientEmail, FILTER_VALIDATE_EMAIL)) {
-                Mail::to($patientEmail)->send(new AppointmentReceiptMail($appointment, 'patient'));
-            }
-            if (is_string($doctorEmail) && filter_var($doctorEmail, FILTER_VALIDATE_EMAIL)) {
-                Mail::to($doctorEmail)->send(new AppointmentReceiptMail($appointment, 'doctor'));
+            $testTo = config('mail.test_recipient');
+            if (is_string($testTo) && filter_var($testTo, FILTER_VALIDATE_EMAIL)) {
+                Mail::to($testTo)->send(new AppointmentReceiptMail($appointment, 'patient', $doctorDayAppointments));
+                Mail::to($testTo)->send(new AppointmentReceiptMail($appointment, 'doctor', $doctorDayAppointments));
+            } else {
+                $patientEmail = $appointment->patient->user->email ?? null;
+                $doctorEmail = $appointment->doctor->user->email ?? null;
+
+                if (is_string($patientEmail) && filter_var($patientEmail, FILTER_VALIDATE_EMAIL)) {
+                    Mail::to($patientEmail)->send(new AppointmentReceiptMail($appointment, 'patient', $doctorDayAppointments));
+                }
+                if (is_string($doctorEmail) && filter_var($doctorEmail, FILTER_VALIDATE_EMAIL)) {
+                    Mail::to($doctorEmail)->send(new AppointmentReceiptMail($appointment, 'doctor', $doctorDayAppointments));
+                }
             }
         } catch (\Throwable $e) {
             \Log::error('Appointment receipt email failed: '.$e->getMessage());
@@ -181,7 +195,7 @@ class AppointmentController extends Controller
             ->with('swal', [
                 'icon' => 'success',
                 'title' => 'Cita programada',
-                'text' => 'La cita se guardó. Se envió confirmación por WhatsApp (si aplica) y el comprobante PDF por correo al paciente y al doctor.',
+                'text' => 'La cita se guardó. Se envió confirmación por WhatsApp (si aplica) y los correos de comprobante (paciente con PDF y doctor con agenda del día).',
             ]);
     }
 
