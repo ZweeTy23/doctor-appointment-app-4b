@@ -9,18 +9,15 @@ use Illuminate\Support\Carbon;
 
 class SendAppointmentReminders extends Command
 {
-    /**
-     * Nombre del comando: php artisan appointments:send-reminders
-     */
     protected $signature = 'appointments:send-reminders';
 
-    protected $description = 'Envía recordatorios por WhatsApp a los pacientes con cita mañana';
+    protected $description = 'Envía recordatorios por WhatsApp a los pacientes con cita mañana (agrupados por paciente)';
 
     public function handle(WhatsAppService $whatsapp): int
     {
         $tomorrow = Carbon::tomorrow()->toDateString();
 
-        // Buscar todas las citas programadas para mañana
+        // Traer todas las citas programadas para mañana
         $appointments = Appointment::with(['patient.user', 'doctor.user'])
             ->where('date', $tomorrow)
             ->where('status', 'programado')
@@ -28,20 +25,32 @@ class SendAppointmentReminders extends Command
 
         if ($appointments->isEmpty()) {
             $this->info('No hay citas programadas para mañana.');
+
             return self::SUCCESS;
         }
 
-        foreach ($appointments as $appointment) {
+        // Agrupar por patient_id → 1 mensaje por paciente aunque tenga varias citas
+        $grouped = $appointments->groupBy('patient_id');
+        $sent = 0;
+
+        foreach ($grouped as $patientId => $patientAppointments) {
+            $patientName = $patientAppointments->first()->patient->user->name;
+            $count = $patientAppointments->count();
+
             try {
-                $whatsapp->sendAppointmentReminder($appointment);
-                $this->info("✅ Recordatorio enviado: {$appointment->patient->user->name} — {$tomorrow}");
+                $whatsapp->sendGroupedReminder($patientAppointments);
+
+                $label = $count > 1 ? "{$count} citas" : '1 cita';
+                $this->info("✅ Recordatorio enviado a {$patientName} ({$label}) — {$tomorrow}");
+                $sent++;
             } catch (\Exception $e) {
-                $this->error("❌ Error con cita ID {$appointment->id}: " . $e->getMessage());
-                \Log::error('WhatsApp reminder failed for appointment ' . $appointment->id . ': ' . $e->getMessage());
+                $this->error("❌ Error con paciente ID {$patientId}: ".$e->getMessage());
+                \Log::error("WhatsApp reminder failed for patient {$patientId}: ".$e->getMessage());
             }
         }
 
-        $this->info("Total enviados: {$appointments->count()}");
+        $this->info("Mensajes enviados: {$sent} / {$grouped->count()} pacientes.");
+
         return self::SUCCESS;
     }
 }

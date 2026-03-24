@@ -22,6 +22,12 @@ return [
         'key' => env('RESEND_KEY'),
     ],
 
+    'admin' => [
+        'email' => env('ADMIN_EMAIL'),
+        // Reporte matutino global (por médico). Si está vacío, se usa ADMIN_EMAIL.
+        'digest_email' => env('ADMIN_DIGEST_EMAIL') ?: env('ADMIN_EMAIL'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
@@ -36,10 +42,10 @@ return [
     ],
 
     'twilio' => [
-        'sid'   => env('TWILIO_SID'),
+        'sid' => env('TWILIO_SID'),
         'token' => env('TWILIO_TOKEN'),
-        'from'  => env('TWILIO_WHATSAPP_FROM'),
-        'to'    => env('TWILIO_WHATSAPP_TO'),
+        'from' => env('TWILIO_WHATSAPP_FROM'),
+        'to' => env('TWILIO_WHATSAPP_TO'),
     ],
 
 ];
