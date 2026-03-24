@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Appointment;
+use App\Models\Doctor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -16,9 +17,11 @@ class DailyAppointmentsAdminMail extends Mailable
 
     /**
      * @param  Collection<int, Appointment>  $appointments
+     * @param  Collection<int, Doctor>  $doctors
      */
     public function __construct(
         public Collection $appointments,
+        public Collection $doctors,
         public string $date,
     ) {}
 
@@ -35,6 +38,7 @@ class DailyAppointmentsAdminMail extends Mailable
             view: 'mail.daily-appointments-admin',
             with: [
                 'appointments' => $this->appointments,
+                'doctors' => $this->doctors,
                 'date' => $this->date,
             ],
         );
