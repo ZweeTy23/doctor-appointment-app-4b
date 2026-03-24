@@ -25,17 +25,17 @@ class SendDailyAppointmentDigest extends Command
             ->orderBy('start_time')
             ->get();
 
-        $adminEmail = config('services.admin.email');
-        if (is_string($adminEmail) && filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
+        $digestEmail = config('services.admin.digest_email');
+        if (is_string($digestEmail) && filter_var($digestEmail, FILTER_VALIDATE_EMAIL)) {
             try {
-                Mail::to($adminEmail)->send(new DailyAppointmentsAdminMail($appointments, $dateString));
-                $this->info("Reporte de administrador enviado a {$adminEmail}.");
+                Mail::to($digestEmail)->send(new DailyAppointmentsAdminMail($appointments, $dateString));
+                $this->info("Reporte de administrador enviado a {$digestEmail}.");
             } catch (\Throwable $e) {
                 $this->error('Error al enviar correo al administrador: '.$e->getMessage());
                 \Log::error('Daily digest admin mail failed: '.$e->getMessage());
             }
         } else {
-            $this->warn('ADMIN_EMAIL no está configurado o no es válido en .env / config/services.php.');
+            $this->warn('ADMIN_DIGEST_EMAIL / ADMIN_EMAIL no está configurado o no es válido en .env.');
         }
 
         $sentDoctors = 0;

@@ -25,7 +25,7 @@ class DailyAppointmentsAdminMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Reporte diario de citas').' — '.$this->date,
+            subject: __('Reporte del día — resumen por médico').' ('.$this->date.')',
         );
     }
 

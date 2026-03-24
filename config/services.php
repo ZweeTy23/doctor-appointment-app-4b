@@ -24,6 +24,8 @@ return [
 
     'admin' => [
         'email' => env('ADMIN_EMAIL'),
+        // Reporte matutino global (por médico). Si está vacío, se usa ADMIN_EMAIL.
+        'digest_email' => env('ADMIN_DIGEST_EMAIL') ?: env('ADMIN_EMAIL'),
     ],
 
     'ses' => [
