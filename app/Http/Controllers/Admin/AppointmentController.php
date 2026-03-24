@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AppointmentReceiptMail;
 use App\Models\Appointment;
 use App\Models\Availability;
 use App\Models\Doctor;
@@ -10,6 +11,7 @@ use App\Models\Patient;
 use App\Models\Speciality;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class AppointmentController extends Controller
 {
@@ -64,11 +66,11 @@ class AppointmentController extends Controller
                     return $appt->start_time < $avail->end_time && $appt->end_time > $avail->start_time;
                 });
 
-                if (!$isOccupied) {
+                if (! $isOccupied) {
                     $availableSlots[] = [
                         'start' => date('H:i', strtotime($avail->start_time)),
-                        'end'   => date('H:i', strtotime($avail->end_time)),
-                        'label' => date('H:i', strtotime($avail->start_time)) . ' - ' . date('H:i', strtotime($avail->end_time)),
+                        'end' => date('H:i', strtotime($avail->end_time)),
+                        'label' => date('H:i', strtotime($avail->start_time)).' - '.date('H:i', strtotime($avail->end_time)),
                     ];
                 }
             }
@@ -88,14 +90,14 @@ class AppointmentController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'patient_id'  => 'required|exists:patients,id',
-            'doctor_id'   => 'required|exists:doctors,id',
-            'date'        => 'required|date|after_or_equal:today',
-            'start_time'  => 'required|date_format:H:i',
-            'reason'      => 'nullable|string',
+            'patient_id' => 'required|exists:patients,id',
+            'doctor_id' => 'required|exists:doctors,id',
+            'date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required|date_format:H:i',
+            'reason' => 'nullable|string',
         ]);
 
-        $startTime = $data['start_time'] . ':00';
+        $startTime = $data['start_time'].':00';
         $h = (int) substr($data['start_time'], 0, 2);
         $endTime = sprintf('%02d:00:00', $h + 1);
         $date = $data['date'];
@@ -110,13 +112,13 @@ class AppointmentController extends Controller
             ->where('end_time', '>=', $endTime)
             ->exists();
 
-        if (!$hasAvailability) {
+        if (! $hasAvailability) {
             return redirect()->back()
                 ->withInput()
                 ->with('swal', [
-                    'icon'  => 'error',
+                    'icon' => 'error',
                     'title' => 'Sin disponibilidad',
-                    'text'  => 'El doctor no tiene disponibilidad en ese horario.',
+                    'text' => 'El doctor no tiene disponibilidad en ese horario.',
                 ]);
         }
 
@@ -126,7 +128,7 @@ class AppointmentController extends Controller
             ->where('status', '!=', 'cancelado')
             ->where(function ($query) use ($startTime, $endTime) {
                 $query->where('start_time', '<', $endTime)
-                      ->where('end_time', '>', $startTime);
+                    ->where('end_time', '>', $startTime);
             })
             ->exists();
 
@@ -134,38 +136,52 @@ class AppointmentController extends Controller
             return redirect()->back()
                 ->withInput()
                 ->with('swal', [
-                    'icon'  => 'error',
+                    'icon' => 'error',
                     'title' => 'Conflicto de horario',
-                    'text'  => 'El doctor ya tiene una cita programada en ese rango de tiempo.',
+                    'text' => 'El doctor ya tiene una cita programada en ese rango de tiempo.',
                 ]);
         }
 
         // ─── Crear la cita ───
         $appointment = Appointment::create([
             'patient_id' => $data['patient_id'],
-            'doctor_id'  => $doctorId,
-            'date'       => $date,
+            'doctor_id' => $doctorId,
+            'date' => $date,
             'start_time' => $startTime,
-            'end_time'   => $endTime,
-            'status'     => 'programado',
-            'reason'     => $data['reason'] ?? null,
+            'end_time' => $endTime,
+            'status' => 'programado',
+            'reason' => $data['reason'] ?? null,
         ]);
 
-        // ─── Enviar confirmación por WhatsApp ───
+        // ─── Confirmación WhatsApp + comprobante PDF por correo ───
+        $appointment->load(['patient.user', 'doctor.user']);
+
         try {
-            $appointment->load(['patient.user', 'doctor.user']);
             app(WhatsAppService::class)->sendAppointmentConfirmation($appointment);
         } catch (\Exception $e) {
-            // Si falla el WhatsApp, la cita ya quedó guardada — no bloquear al usuario
-            \Log::error('WhatsApp confirmation failed: ' . $e->getMessage());
+            \Log::error('WhatsApp confirmation failed: '.$e->getMessage());
+        }
+
+        try {
+            $patientEmail = $appointment->patient->user->email ?? null;
+            $doctorEmail = $appointment->doctor->user->email ?? null;
+
+            if (is_string($patientEmail) && filter_var($patientEmail, FILTER_VALIDATE_EMAIL)) {
+                Mail::to($patientEmail)->send(new AppointmentReceiptMail($appointment, 'patient'));
+            }
+            if (is_string($doctorEmail) && filter_var($doctorEmail, FILTER_VALIDATE_EMAIL)) {
+                Mail::to($doctorEmail)->send(new AppointmentReceiptMail($appointment, 'doctor'));
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Appointment receipt email failed: '.$e->getMessage());
         }
 
         return redirect()
             ->route('admin.appointments.index')
             ->with('swal', [
-                'icon'  => 'success',
+                'icon' => 'success',
                 'title' => 'Cita programada',
-                'text'  => 'La cita médica ha sido programada y se envió confirmación por WhatsApp.',
+                'text' => 'La cita se guardó. Se envió confirmación por WhatsApp (si aplica) y el comprobante PDF por correo al paciente y al doctor.',
             ]);
     }
 
@@ -175,6 +191,7 @@ class AppointmentController extends Controller
     public function edit(Appointment $appointment)
     {
         $appointment->load(['patient.user', 'doctor.user']);
+
         return view('admin.appointments.edit', compact('appointment'));
     }
 
@@ -184,12 +201,12 @@ class AppointmentController extends Controller
     public function update(Request $request, Appointment $appointment)
     {
         $data = $request->validate([
-            'status'     => 'required|in:programado,cancelado,completado',
-            'date'       => 'required|date',
+            'status' => 'required|in:programado,cancelado,completado',
+            'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
         ]);
 
-        $startTime = $data['start_time'] . ':00';
+        $startTime = $data['start_time'].':00';
         $h = (int) substr($data['start_time'], 0, 2);
         $endTime = sprintf('%02d:00:00', $h + 1);
 
@@ -201,7 +218,7 @@ class AppointmentController extends Controller
                 ->where('status', '!=', 'cancelado')
                 ->where(function ($query) use ($startTime, $endTime) {
                     $query->where('start_time', '<', $endTime)
-                          ->where('end_time', '>', $startTime);
+                        ->where('end_time', '>', $startTime);
                 })
                 ->exists();
 
@@ -209,26 +226,26 @@ class AppointmentController extends Controller
                 return redirect()->back()
                     ->withInput()
                     ->with('swal', [
-                        'icon'  => 'error',
+                        'icon' => 'error',
                         'title' => 'Conflicto de horario',
-                        'text'  => 'Ya existe otra cita en ese rango de tiempo.',
+                        'text' => 'Ya existe otra cita en ese rango de tiempo.',
                     ]);
             }
         }
 
         $appointment->update([
-            'status'     => $data['status'],
-            'date'       => $data['date'],
+            'status' => $data['status'],
+            'date' => $data['date'],
             'start_time' => $startTime,
-            'end_time'   => $endTime,
+            'end_time' => $endTime,
         ]);
 
         return redirect()
             ->route('admin.appointments.index')
             ->with('swal', [
-                'icon'  => 'success',
+                'icon' => 'success',
                 'title' => 'Cita actualizada',
-                'text'  => 'La cita ha sido actualizada correctamente.',
+                'text' => 'La cita ha sido actualizada correctamente.',
             ]);
     }
 
@@ -242,9 +259,9 @@ class AppointmentController extends Controller
         return redirect()
             ->route('admin.appointments.index')
             ->with('swal', [
-                'icon'  => 'success',
+                'icon' => 'success',
                 'title' => 'Cita eliminada',
-                'text'  => 'La cita ha sido eliminada.',
+                'text' => 'La cita ha sido eliminada.',
             ]);
     }
 }
